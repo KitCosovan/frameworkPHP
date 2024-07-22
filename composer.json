@@ -2,6 +2,7 @@
     "name": "kit-cosovan/base-frame",
     "description": "FrameworkPHP is a lightweight PHP framework designed for quickly building web applications. The framework provides simple and easy-to-use tools for working with routing, databases, templates and other aspects of web development.",
     "homepage": "https://github.com/KitCosovan/frameworkPHP",
+    "license": "MIT",
     "authors": [
         {
             "name": "Kit Cosovan",
