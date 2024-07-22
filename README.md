@@ -36,45 +36,76 @@ composer install
 
 ## Usage Examples
 
-### Example of Creating a Controller
-In this framework, the entry point and the base controller already exist and are configured. You can attach additional functionality to the base controller, which will apply to all controllers inherited by the base controller.
-<br>
-<br>
-To create a new controller, you need to inherit it from the base controller and create methods that perform the functionality required to render a particular page.
+### Methods of Application
+
+Application has three main methods.
+1. Method `run`: Starts the application.
 ```php
-<?php
-
-namespace App\Controllers;
-
-class HomeController extends BaseController
-{
-    public function index()
-    {
-        return view('home');
-    }
-}
+$app->run();
 ```
-<br>
-An example of a more complex controller that passes certain pagination and generic data to the view.
-
+2. Method `get`: Allows you to get data from the container. It accepts two parameters `get($key, $default)`. If the data does not exist by key, the value passed by the second parameter is returned, or `null`.
 ```php
-class HomeController extends BaseController
-{
-    public function index()
-    {
-        $page = (int)request()->get('page', 1);
-        $total = db()->getCount('posts');
-        $per_page = 5;
-        $pagination = new Pagination($page, $per_page, $total);
-        $start = $pagination->getStart();
-
-        $posts = db()->query("SELECT p.title, p.slug, p.excerpt, p.image, DATE_FORMAT(p.created_at, '%b %D \'%y') AS created_at, c.title AS c_title, c.slug AS c_slug FROM posts p JOIN categories c ON c.id = p.category_id ORDER BY p.created_at DESC LIMIT $start, $per_page")->get();
-
-        $title = 'Home page' . ($page > 1 ? " - Page {$page}" : '');
-        return view('home', ['title' => $title, 'posts' => $posts, 'pagination' => $pagination]);
-    }
-}
+$app->get('data');
 ```
-<br>
-<br>
-### Example of Creating a Model
+3. Method `set`: Allows you to put data into the container. It accepts two parameters `set($key, $value)`. Sets the value of `$value` by the `$key`.
+```php
+$app->set('data', ['some data' => 'value']);
+```
+
+The get and set methods are useful for debugging and storing some data throughout the application.
+
+### Methods of Cache
+
+Cache has three main methods.
+1. Method `get`: Allows you to get data from the container. It accepts two parameters `get($key, $default)`. If the data does not exist by key, the value passed by the second parameter is returned, or `null`.
+```php
+$cache->get('tags');
+```
+2. Method `set`: Caches data for a specific time, by default one hour. It accepts 3 parameters `set($key, $data, $time)`. Sets data `$data` under `$key` to a time equal to `$time`.
+```php
+$cache->set('tags', ['tag1' => 'value1', 'tag2' => 'value2'], 7200);
+```
+3. Method `forget`: Removes data from the cache. It takes one parameter `forget($key)`. The key under which the data was written.
+```php
+$cache->forget('tags');
+```
+
+### Methods of Controller
+
+Controller has a method.
+Method `render`: Renders the view. Takes three parameters `render($view, $data = [], $layout = '')`. 
+`$view` - File name (without extension: `home.php` = `home`).
+`$data` - Data passed to the view.
+`$layout` - The page template used in the view. File name (without extension: `default.php` = `default`).
+```php
+app()->view->render('home', ['title' => 'Home page'], 'default')
+```
+
+### Methods of Database
+
+Before working with the databases, remember to set up the configuration files. This is mandatory.
+
+1. Method `query`: Allows you to query the database. Accepts two parameters `query($query, $params = [])`. The query itself and the parameters, if they are required for the query. The query method excludes the possibility of SQL injection.
+```php
+db()->query("SELECT COUNT(*) FROM posts WHERE category_id = ?", [$category['id']])
+```
+2. Method `get`: Returns all the rows in the query.
+```php
+db()->query("SELECT COUNT(*) FROM posts WHERE category_id = ?", [$category['id']])->get()
+```
+3. Method `getOne`: Returns the row as requested.
+```php
+db()->query("SELECT * FROM tags WHERE slug = ?", [$slug])->getOne()
+```
+4. Method `findAll`: Returns all rows from the table. Accepts one parameter `findAll($tbl)` - table name.
+```php
+db()->findAll('categories')
+```
+5. Method `findOne`: Returns a row from the table by id. Accepts two parameters `findOne($tbl, $id)`. `$tbl` - table name, `$id` - item id.
+```php
+db()->findAll('categories', 5)
+```
+6. Method `findOrFail`: Returns a row from the table by id. Accepts two parameters `findOrFail($tbl, $id)`. `$tbl` - table name, `$id` - item id. If the row was not found, it returns an error.
+```php
+db()->findOrFail('categories', 5)
+```
