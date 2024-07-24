@@ -420,3 +420,214 @@ $app->router->post('/comment/store', [\App\Controllers\CommentController::class,
 $app = new \PHPFramework\Application();
 $app->router->add('/register', [\App\Controllers\UserController::class, 'register'], ['get', 'post'])->only('guest');
 ```
+
+<br>
+<br>
+
+### Methods of Session
+
+1. Method `setFlash`: The `setFlash($key, $value)` method sets the warning, which is subsequently rendered using standard bootstrap markup.
+```php
+session()->setFlash('success', 'You have successfully registered.');
+```
+2. Method `getFlash`: The `getFlash($key)` method allows you to get the value set in the session under a specific key. It removes this value from the session.
+```php
+$error_message = session()->getFlash('error');
+```
+3. Method `set`: The `set($key, $value)` method sets a key-value pair to the global array `$_SESSION`.
+```php
+session()->set('user', $user_data);
+```
+4. Method `get`: The `get($key, $default = null)` method returns the value set to the global array `$_SESSION` under a specific key. If the value was not found - returns the parameter `$default`.
+```php
+session()->get('user');
+```
+5. Method `has`: The `has($key)` method checks if the global array `$_SESSION` is set to a value under the key `$key`.
+```php
+if (session()->has('user') {
+  $user_name = session()->get('user')['name'];
+}
+```
+6. Method `forget`: The `forget($key)` method removes a `$key` value from the `$_SESSION` global array.
+```php
+if (session()->has('user') {
+  session()->forget('user');
+}
+```
+
+<br>
+<br>
+
+### Methods of View
+
+1. Method `render`: The `render($view, $data = [], $layout = '')` method renders the view and passes data to it. A third optional argument can be passed as a template. The third argument is initially defined as default and renders a file named default.php.
+```php
+public function index()
+{
+  return app()->view->render('users/register', ['title' => 'Register'])
+}
+```
+2. Method `renderPartial`: The `renderPartial($view, $data = [])` method renders only part of the view without reloading the entire page. It also takes in the data that is passed into the view.
+```php
+<?= app()->view->renderPartial('incs/header', ['title' => $title]); ?>
+```
+
+<br>
+<hr>
+<br>
+
+## Helpers functions
+
+<br>
+
+- Function `view()`: Simplifies the work with the method `render` method of the `View` class. Takes the same arguments as the `render` method.
+```php
+public function index()
+{
+  return view('users/register', ['title' => 'Register']);
+}
+```
+- Function `request()`: Allows you not to create a copy of the `Request` class, but to use a convenience function that returns that very copy.
+```php
+$page = request()->get('page', 1)
+```
+- Function `response()`: Simplifies the work with the method `setResponceCode` method of the `Response` class. Takes the same arguments as the `setResponceCode` method.
+```php
+public function index()
+{
+  return response(404);
+}
+```
+- Function `router()`: Allows you not to create a copy of the `Router` class, but to use a convenience function that returns that very copy.
+```php
+router()->get('/logout', [\App\Controllers\UserController::class, 'logout'])
+```
+- Function `redirect()`: Simplifies the work with the method `redirect` method of the `Response` class. Takes the same arguments as the `redirect` method.
+```php
+public function index()
+{
+  redirect('/');
+}
+```
+- Function `db()`: Allows you not to create a copy of the `Database` class, but to use a convenience function that returns that very copy.
+```php
+public function index()
+{
+  db()->query("UPDATE posts SET views = views + 1 WHERE slug = ?", [$slug]);
+}
+```
+- Function `base_url($path = '')`: Returns the url address as a string with the value passed into it. The output is a full address of the following type: www.yoursite.com/`$path`
+```php
+<a href="<?= base_url("/register"); ?>">
+```
+- Function `html($str)`: A shortened version of the standard `htmlspecialchars` function.
+- Function `old($fieldname)`: Useful for working with forms. Inserts the previous entered value into the field in case validation was not passed.
+```php
+<input type="text" name="name"
+       class="form-control <?= get_validation_class('name', $errors ?? []); ?>" id="name"
+       placeholder="Your Name" value="<?= old('name'); ?>">
+```
+- Function `oldfFromSession($arr, $fieldname)`: If the form values are written to the `$_SESSION` global array as an array, this function will help to retrieve the previous entered value from there.
+```php
+class PostController extends BaseController
+{
+  public function store()
+  {
+      // Some code
+
+      if (!$model->validate()) {
+          session()->set('form_data', $model->attributes);
+          session()->set('form_errors', $model->getErrors());
+          session()->setFlash('error', 'Validation Error');
+          redirect(base_url('/admin/posts/create'));
+      }
+
+      // Some code
+  }
+}
+
+...
+
+<textarea id="content"
+          name="content"
+          class="form-control summernote <?= get_validation_class('content', $errors ?? []); ?>"
+          rows="3"
+          placeholder="Content">
+          <?= oldfFromSession('form_data', 'content'); ?>
+</textarea>
+```
+- Function `selected($arr, $fieldname, $value, $data = [])`: Function for processing the values selected in the form.
+```php
+<div class="col-md-6">
+    <div class="form-group">
+        <label>Select Tags</label>
+        <select multiple name="tag_id[]" id="tag_id" class="form-control select2">
+            <?php foreach ($tags as $tag) : ?>
+                <option value="<?= $tag['id']; ?>" <?= selected('form_data', 'tag_id', $tag['id']); ?>><?= $tag['title']; ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+</div>
+```
+- Function `get_errors($fieldname, $errors = [])`: Output of validation errors.
+```php
+<div class="col-md-6">
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text"
+               class="form-control <?= get_validation_class('title', $errors ?? []); ?>"
+               name="title"
+               id="title"
+               placeholder="Enter your title"
+               value="<?= oldfFromSession('form_data', 'title'); ?>">
+        <?= get_errors('title', $errors ?? []); ?>
+    </div>
+</div>
+```
+- Function `get_validation_class($fieldname, $errors = [])`: Highlighting a field that has passed/failed validation by standard bootstrap markup.
+```php
+<div class="col-md-6">
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text"
+               class="form-control <?= get_validation_class('title', $errors ?? []); ?>"
+               name="title"
+               id="title"
+               placeholder="Enter your title"
+               value="<?= oldfFromSession('form_data', 'title'); ?>">
+        <?= get_errors('title', $errors ?? []); ?>
+    </div>
+</div>
+```
+- Function `abort($error = '', $code = 404)`: Call the error page passed as the second argument. By default the 404 page is called, which is inside the framework. It is possible to pass the error text as the first argument.
+```php
+public function Fail($result)
+{
+    if (!$result) {
+        abort();
+    }
+    return $result;
+}
+```
+- Function `session()`: Allows you not to create a copy of the `Session` class, but to use a convenience function that returns that very copy.
+```php
+session()->setFlash('success', 'Success message');
+```
+- Function `cache()`: Allows you not to create a copy of the `Cache` class, but to use a convenience function that returns that very copy.
+```php
+cache()->forget('user');
+```
+- Function `get_alerts()`: Renders the warnings recorded in the session.
+```php
+<main id="main">
+    <section>
+        <div class="container">
+            <?= get_alerts() ?>
+        </div>
+    </section>
+</main>
+```
+- Function `get_file_ext($file_name)`: Gets the extension of the file. Takes the full name of the file as an argument.
+```php
+$file_ext = (false === $i) ? get_file_ext($file['name']) : get_file_ext($file['name'][$i]);
+```
