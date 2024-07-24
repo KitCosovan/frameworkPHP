@@ -250,3 +250,173 @@ class User extends Model
 6. Method `getErrors`: The `getErrors()` method returns an array of errors.
 7. Method `hasErrors`: The `hasErrors()` method checks for errors.
 8. Method `listErrors`: The `listErrors()` method renders a list of errors.
+
+<br>
+<br>
+
+### Methods of Pagination
+
+The Pagination class outputs us pagination and is based on bootstrap classes. If you use your own custom styles - feel free to modify the source code of the styles.
+
+<br>
+
+When you create a class, you are required to enter three parameters:
+1. $page - valid page.
+2. $per_page - number of entities on one page.
+3. $total - total number of entities.
+<br>
+Example of creating pagination.
+```php
+public function index()
+{
+  $page = (int)request()->get('page', 1);
+  $total = db()->query("SELECT COUNT(*) FROM $tbl WHERE $param = ?", [$value])->getColumn();
+  $per_page = 5;
+  $pagination = new Pagination($page, $per_page, $total);
+  $start = $pagination->getStart();
+}
+```
+
+<br>
+
+1. Method `getStart`: The `getStart()` method returns the line number that starts the list of entities displayed on the page.
+```php
+public function index()
+{
+    $pagination = new Pagination($page, $per_page, $total);
+    $start = $pagination->getStart();
+}
+```
+2. Method `getHtml`: The `getHtml()` method returns the basic bootstrap page number markup.
+```php
+<?php echo $pagination->getHtml(); ?>
+```
+ - For more convenient rendering of markup I suggest to use the following construction:
+   ```php
+   <?php if ($pagination->count_pages >= 2) : ?>
+       <div class="text-start py-4">
+           <div class="custom-pagination">
+               <?= $pagination ?>
+           </div>
+       </div>
+   <?php endif; ?>
+   ```
+3. Method `__toString`: The `__toString()` method converts the result returned by the `getHtml()` method into a string.
+
+<br>
+
+The Pagination class has several variables that you can use, or modify.
+- $count_pages - number of pages.
+- $current_page - the number of the current page.
+- $uri - page url.
+- $max_pages - the maximum number of pages at which each page number is displayed in pagination.
+
+<br>
+<br>
+
+### Methods of Request
+
+1. Method `getPath`: The `getPath()` method returns the url address of the current page.
+```php
+public function index()
+{
+    $path = request()->getPath();
+}
+```
+2. Method `isGet`: The `isGet()` method checks if the request method was get. It returns `true` if there was a get request and `false` otherwise.
+```php
+public function index()
+{
+    $request_data = request()->isGet() ? $_GET : $_POST;
+}
+```
+3. Method `isPost`: The `isPost()` method checks if the request method was post. It returns `true` if there was a post request and `false` otherwise.
+```php
+public function index()
+{
+    $request_data = request()->isPost() ? $_POST : $_GET;
+}
+```
+4. Method `get`: The `get($name, $default = null)` method returns the query data for the `$name` key, if there is no data it returns the default value `$default`. The query itself must be of get type.
+```php
+public function pagination()
+{
+    $page = (int)request()->get('page', 1);
+}
+```
+5. Method `post`: The `post($name, $default = null)` method returns the query data for the `$name` key, if there is no data it returns the default value `$default`. The query itself must be of post type.
+```php
+public function user()
+{
+    $nickname = request()->post('nickname', '');
+}
+```
+6. Method `post`: The `post($name, $default = null)` method returns the query data for the `$name` key, if there is no data it returns the default value `$default`. The query itself must be of post type.
+```php
+public function user()
+{
+    $nickname = request()->post('nickname', '');
+}
+```
+7. Method `getData`: The `getData()` method returns the request data as an array, where the key-value pair matches the global array `$_GET` or `$_POST`, depending on the type of request passed to the page.
+```php
+public function data()
+{
+    $request_data = request()->getData();
+}
+```
+
+<br>
+<br>
+
+### Methods of Response
+
+The Response class has two important methods.
+
+1. Method `setResponceCode`: The `setResponceCode($code)` method sets the response code from the server to the one you pass to it as an argument.
+```php
+public function responce()
+{
+    $error_404 = app()->responce->setResponceCode(404);
+}
+```
+2. Method `redirect`: The `redirect($url = '')` method redirects the user to the page you pass as an argument.
+```php
+public function redirect()
+{
+    $main_page = app()->responce->redirect('/');
+}
+```
+
+<br>
+<br>
+
+### Methods of Router
+
+1. Method `getRoutes`: The `getRoutes()` method returns all routes existing in the application.
+```php
+public function router()
+{
+    $routes = app()->router->getRoutes();
+}
+```
+2. Method `add`: The `add($uri, $callback, $method)` method allows your route to be processed by both the post method and the get method. The parameters passed are the url address of the route, the callback processing the route and the request method, or an array of methods.
+```php
+$app = new \PHPFramework\Application();
+$app->router->add('/register', [\App\Controllers\UserController::class, 'register'], ['get', 'post'])
+```
+3. Method `get`: The `get($uri, $callback)` method allows your route to be processed by the get method. The url address of the route is passed as parameters, callback processing this route.
+```php
+$app = new \PHPFramework\Application();
+$app->router->get('/logout', [\App\Controllers\UserController::class, 'logout'])
+```
+4. Method `post`: The `post($uri, $callback)` method allows your route to be processed by the post method. The url address of the route is passed as parameters, callback processing this route.
+```php
+$app = new \PHPFramework\Application();
+$app->router->post('/comment/store', [\App\Controllers\CommentController::class, 'store'])
+```
+5. Method `only`: The `only($middleware)` method allows your route to be available only to a specific type of user.
+```php
+$app = new \PHPFramework\Application();
+$app->router->add('/register', [\App\Controllers\UserController::class, 'register'], ['get', 'post'])->only('guest');
+```
