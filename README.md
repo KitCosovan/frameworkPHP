@@ -631,3 +631,33 @@ cache()->forget('user');
 ```php
 $file_ext = (false === $i) ? get_file_ext($file['name']) : get_file_ext($file['name'][$i]);
 ```
+- Function `upload_file($file, $i = false, $path = false)`: function takes three arguments.
+The file name, the iteration number if you are uploading several files at once in a loop, the path to the file if it already exists. The function creates a new folder, if it doesn't exist yet, in the format year/month/day, where it puts your file with the hashed name. Returns false, or the domain path to the file.
+```php
+if ($image) {
+    if ($file_url = upload_file($image)) {
+        dump($file_url);
+    }
+}
+```
+- Function `check_auth()`: function checks if user data is written to the session. It returns a boolean value.
+```php
+ if (check_auth()) {
+    session()->forget('user');
+}
+```
+- Function `check_auth()`: function checks if user data is written to the session. It returns a boolean value.
+```php
+ if (check_auth()) {
+    session()->forget('user');
+}
+```
+- Function `send_mail(array $to, string $subject, string $body, array $attachments = [])`: function sends an email. It works on the basis of PHPMailer.
+
+<br>
+<hr>
+<br>
+
+## Note
+
+It is also worth noting that this technology works with other libraries such as: phpmailer and symfony/var-dumper. The former allows you to work with e-mail conveniently, and the latter is used for debugging.
